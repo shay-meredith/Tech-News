@@ -1,8 +1,10 @@
 const tickerOne = document.querySelector("#ticker1");
 const tickerTwo = document.querySelector("#ticker2");
 let urlHNMaxId = "https://hacker-news.firebaseio.com/v0/maxitem.json?";
-let maxId = "";
-let urlHNLatest = "https://hacker-news.firebaseio.com/v0/item/16057062.json?";
+let maxId = 0;
+let counter = 0;
+let newsStories = 5;
+let urlHNLatest = '';
 const newsButton = document.querySelector("#newsBtn");
 
 newsButton.addEventListener('click', sendMaxIdRequest);
@@ -14,7 +16,9 @@ function sendMaxIdRequest() {
 }
 
 function getMaxId(response) {
-  maxId = response.data;
+  maxId = response.data - counter;
+  maxId = maxId.toString();
+  urlHNLatest = "https://hacker-news.firebaseio.com/v0/item/" + maxId + ".json?";
   axios.get(urlHNLatest)
   .then(updateTicker)
   .catch(tickerErrors);
@@ -31,7 +35,26 @@ function maxIdErrors(error) {
 }
 
 function updateTicker(response) {
-    tickerOne.innerHTML = response.data.text;
+    console.log('Response is: ' + response.data.type);
+    console.log(maxId);
+    if (newsStories > 0) {
+        if(response.data.type == 'story') {
+            tickerOne.innerHTML = response.data.title;
+            newsStories--;
+            console.log('newsStories: ' + newsStories);
+            counter++;
+            sendMaxIdRequest();
+        } else {
+            counter++;
+            sendMaxIdRequest();
+        }
+    }
+}
+
+function updateLoop() {
+    axios.get(urlHNLatest)
+    .then(updateTicker)
+    .catch(tickerErrors);
 }
 
 function tickerErrors(error) {
